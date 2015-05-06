@@ -9,10 +9,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.io.File;
 import java.util.Collection;
 
-/**
- * Hello world!
- *
- */
+
 public class AudioVectorizer {
     public static void main( String[] args )  throws Exception {
 

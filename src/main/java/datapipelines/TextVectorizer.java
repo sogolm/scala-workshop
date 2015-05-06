@@ -2,11 +2,8 @@ package datapipelines;
 
 import org.canova.api.conf.Configuration;
 import org.canova.api.records.reader.RecordReader;
-import org.canova.api.records.reader.impl.CollectionRecordReader;
 import org.canova.api.records.reader.impl.FileRecordReader;
 import org.canova.api.split.FileSplit;
-import org.canova.api.writable.Writable;
-import org.canova.api.writable.Writables;
 import org.canova.nd4j.nlp.vectorizer.TfidfVectorizer;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.LayerFactory;
@@ -17,10 +14,8 @@ import org.deeplearning4j.nn.layers.factory.LayerFactories;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
+
 
 /**
  * Created by sogolmoshtaghi on 4/27/15.
