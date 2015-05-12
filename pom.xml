@@ -13,9 +13,9 @@
         <java.version>1.7</java.version>
         <scala.version>2.10.4</scala.version>
         <scala.binary.version>2.10</scala.binary.version>
-        <nd4j.version>0.0.3.5.5.3-SNAPSHOT</nd4j.version>
-        <canova.version>0.0.0.2-SNAPSHOT</canova.version>
-        <dl4j.version>0.0.3.3.3.alpha1-SNAPSHOT</dl4j.version>
+        <nd4j.version>0.0.3.5.5.3</nd4j.version>
+        <canova.version>0.0.0.2</canova.version>
+        <dl4j.version>0.0.3.3.3.alpha1</dl4j.version>
     </properties>
     <build>
         <plugins>
@@ -101,6 +101,11 @@
         <dependency>
             <groupId>org.nd4j</groupId>
             <artifactId>canova-nd4j-image</artifactId>
+            <version>${canova.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>canova-nd4j-codec</artifactId>
             <version>${canova.version}</version>
         </dependency>
         <dependency>
