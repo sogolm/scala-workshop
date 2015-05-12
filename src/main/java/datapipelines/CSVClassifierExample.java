@@ -1,5 +1,17 @@
 package datapipelines;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.hadoop.io.Writable;
+import org.canova.api.io.WritableConverter;
+import org.canova.api.io.converters.WritableConverterException;
+import org.canova.api.io.data.IntWritable;
+import org.canova.api.io.data.Text;
+import org.canova.api.records.reader.RecordReader;
+import org.canova.api.records.reader.impl.CSVRecordReader;
+import org.canova.api.split.FileSplit;
+import org.canova.common.RecordConverter;
+import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.CSVDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
@@ -18,7 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collection;
+import java.util.List;
 
 
 public class CSVClassifierExample {
@@ -28,12 +41,30 @@ public class CSVClassifierExample {
     public static void main(String[] args) throws Exception {
 
         // Path to the csv file
-        String dataPath = System.getProperty("user.home") + "/dsr/data/IRIS_dataset/iris.txt";
+        String path = System.getProperty("user.home") + "/dsr/data/IRIS_dataset/iris.txt";
 
-        //Instantiating a DataSetIterator to traverse the data set with the given batch size.
-        DataSetIterator iter = new CSVDataSetIterator(150, 150, new File(dataPath), 4);
+        //Instantiating a RecordReader pointing to the data path
+        RecordReader reader = new CSVRecordReader();
+        reader.initialize(new FileSplit(new File(path)));
 
-        //Building classifier.
+        final List<String> labels = Arrays.asList("Iris-setosa","Iris-versicolor","Iris-virginica");
+
+
+        //Instantiating a DataSetIterator to traverse through the data
+        // with the given batch size, label column index, and possible number of labels.
+        RecordReaderDataSetIterator iter = new RecordReaderDataSetIterator(reader,new WritableConverter() {
+            @Override
+            public org.canova.api.writable.Writable convert(org.canova.api.writable.Writable writable) throws WritableConverterException {
+                if(writable instanceof Text) {
+                    String s = writable.toString().replaceAll("[\u0000]+", "");
+                    int idx = labels.indexOf(s);
+                    return new IntWritable(idx);
+                }
+                return writable;
+            }
+        } ,50, -1, 3);
+
+        //Building a classifier -- simple logistic regression
         NeuralNetConfiguration conf = new NeuralNetConfiguration.Builder()
                 .lossFunction(LossFunctions.LossFunction.MCXENT)
                 .optimizationAlgo(OptimizationAlgorithm.GRADIENT_DESCENT)
@@ -49,20 +80,16 @@ public class CSVClassifierExample {
                 .create(conf, Arrays.<IterationListener>asList(new ScoreIterationListener(1)));
 
         // Iterating over the data and training the model with each batch.
-        ArrayList<DataSet> testSet = new ArrayList<DataSet>();
         while (iter.hasNext()) {
-            DataSet dataset = iter.next();
-            int trainSize = (int) (dataset.getFeatureMatrix().size(0) * 0.8);
-            SplitTestAndTrain trainTest = dataset.splitTestAndTrain(trainSize);
-            trainTest.getTrain().normalizeZeroMeanZeroUnitVariance();
-            classifier.fit(trainTest.getTrain().getFeatureMatrix());
-            testSet.add(trainTest.getTest());
+            DataSet next =  iter.next();
+            classifier.fit(next);
         }
 
-        //Classifying test data using the model.
-        Iterator<DataSet> testIter = testSet.iterator();
-        while(testIter.hasNext()){
-            DataSet test = testIter.next();
+
+        //Classifying test data using the model -- I'm using the same train data as test in this case.
+        iter.reset(); //TODO: should we do this in a loop?
+        while(iter.hasNext()){
+            DataSet test = iter.next();
             test.normalizeZeroMeanZeroUnitVariance();
             Evaluation eval = new Evaluation();
             INDArray output = classifier.output(test.getFeatureMatrix()); //NdArray of likelihood probabilities for each row

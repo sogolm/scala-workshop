@@ -5,7 +5,11 @@ import org.canova.api.split.FileSplit;
 import org.canova.api.writable.Writable;
 import org.canova.common.RecordConverter;
 import org.canova.sound.recordreader.WavFileRecordReader;
+import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
+import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.DataSet;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -18,13 +22,14 @@ public class AudioVectorizer {
 
         RecordReader wavRecordReader = new WavFileRecordReader(true);
         wavRecordReader.initialize(new FileSplit(new File(filepath)));
-        while(wavRecordReader.hasNext()) {
-           Collection<Writable> dataset = wavRecordReader.next();
-           INDArray arr = RecordConverter.toArray(dataset);
-           System.out.println(arr);
+
+        DataSetIterator iter = new RecordReaderDataSetIterator(wavRecordReader);
+
+        while(iter.hasNext()) {
+           DataSet next = iter.next();
+           //network.fit(next);
        }
 
     }
 
 }
-
